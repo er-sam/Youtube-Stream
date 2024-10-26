@@ -9,7 +9,7 @@ import { rateLimit } from "express-rate-limit";
 // import logger from "./logs/logger.js";
 import { createClient } from "redis";
 import authRoute from './src/routes/authRoute.js'
-
+import createrRoute from './src/routes/createrRoute.js'
 
 const app = express();
 
@@ -34,39 +34,20 @@ mongoose
   .catch((err) => console.log("MongoDB connection error:", err));
 
 // Redis Connection
-const redis = await createClient()
-  .on("error", (err) => console.log("Redis Client Error", err))
-  .connect();
+// const redis = await createClient()
+//   .on("error", (err) => console.log("Redis Client Error", err))
+//   .connect();
 
-redis
-  .ping()
-  .then((result) => {
-    // logger.info("Redis connected");
-    console.log("Redis ping response:", result);
-  })
-  .catch((error) => {
-    // logger.error("kafka-error::::",error);
-    console.error("Redis-error:", error);
-  });
+// redis
+//   .ping()
+//   .then((result) => {
+//     console.log("Redis ping response:", result);
+//   })
+//   .catch((error) => {
+//     // logger.error("kafka-error::::",error);
+//     console.error("Redis-error:", error);
+//   });
 
-// Kafka Setup with Fallback and Error Handling
-// const kafka = new Kafka({
-//   brokers: [process.env.KAFKA_BROKER || "localhost:9092"],
-// });
-// const producer = kafka.producer();
-
-// const initKafka = async () => {
-//   try {
-//     await producer.connect();
-//     console.log("kafka","kafka connecvted...")
-//     // logger.info("Kafka connected"); // Log success message
-//   } catch (error) {
-//     console.log("kafka",error)
-//     // logger.error("Kafka connection error:", error); // Log error with descriptive message
-//   }
-// };
-
-// initKafka().catch((err) => logger.error("Kafka initialization error:", err));
 
 // Routes setup
 app.get("/", (req, res) => {
@@ -82,7 +63,8 @@ app.use((err, req, res, next) => {
 
 
 // Api-Calls
-app.use('api/v1/auth/',authRoute);
+app.use('/api/v1/auth/',authRoute);
+app.use('/api/v1/creater/',createrRoute)
 
 // Start Server
 const PORT = process.env.PORT || 3000;

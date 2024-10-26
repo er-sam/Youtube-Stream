@@ -1,7 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
+import dotenv from 'dotenv'
 import fs from "fs";
 import path from "path";
-// import { logger } from "../../logs/logger";
+
+dotenv.config()
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,21 +11,24 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadFileOnCloud = async (localFilePath) => {
+const uploadFileOnCloud = async (localFilePath,public_id) => {
   try {
     if (!localFilePath || !fs.existsSync(localFilePath)) {
       console.error("File does not exist:", localFilePath);
       return null;
     }
-
-    const response = await cloudinary.uploader.upload(localFilePath, {
+    //uploading-file
+    const response = await cloudinary.uploader.upload(localFilePath,{
       resource_type: "auto",
+      public_id
     });
     console.log("Images uploaded to Cloudinary...");
+    //delete-locally-after-uploaded
+    fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
     // logger.error("Cloudinary upload error:", error);
-    console.log("Cloudinary upload error:", error);
+    console.log("Cloudinary-error:", error);
     fs.unlinkSync(localFilePath);
     return null;
   }

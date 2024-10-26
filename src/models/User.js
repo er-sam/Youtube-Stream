@@ -1,16 +1,15 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 // import {jwt} from "jsonwebtoken";
-import pkg from 'jsonwebtoken';
-const {jwt} = pkg;
+import jwt from "jsonwebtoken";
 
 
 const UserSchema = new mongoose.Schema(
   {
     userName: {
       type: String,
-      required: true,
-      lowerCase: true,
+      // required: true,
+      lowercase: true,
       trim: true,
       index: true,
       unique: true,
@@ -18,7 +17,7 @@ const UserSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      lowerCase: true,
+      lowercase: true,
       trim: true,
       unique: true,
     },
@@ -30,6 +29,7 @@ const UserSchema = new mongoose.Schema(
     avatar: {
       type: String,
       required: true,
+      default : ""
     },
     coverImage: {
       type: String,
@@ -38,6 +38,12 @@ const UserSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "Video",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Creater",
       },
     ],
     password: {
@@ -58,15 +64,17 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.validatePassword = async function (password) {
-  return await bcrypt.compare(this.password, password);
+  console.log("passw::",this.password,password,await bcrypt.compare(password,this.password));
+  return await bcrypt.compare(password,this.password);
 };
 
-UserSchema.pre("save", function (next) {
+UserSchema.pre("save", async function (next) {
   const idString = this._id.toString().slice(-4);
   if (this.fullName.length > 6) {
-    const trimName = this.fullName.slice(0, 6);
-    this.userName = trimName + idString;
+    const trimName = this.fullName.slice(0, 6)+idString;
+    this.userName = trimName.replace(/\s+/g, "");
   }
+  next();
 });
 
 UserSchema.methods.AccessToken = async function () {
