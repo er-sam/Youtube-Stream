@@ -1,8 +1,9 @@
-import { Creater } from "../models/Creater";
-import { ApiError } from "../utils/apierrorhandle";
-import { ApiResponse } from "../utils/apiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
-import { uploadFileOnCloud } from "../utils/uploadFile";
+import { Creater } from "../models/Creater.js";
+import { User } from "../models/User.js";
+import { ApiError } from "../utils/apierrorhandle.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadFileOnCloud } from "../utils/uploadFile.js";
 
 const addCreater = asyncHandler(async (req, res) => {
   try {
@@ -32,7 +33,108 @@ const addCreater = asyncHandler(async (req, res) => {
   }
 });
 
-export { addCreater };
+
+
+const follow = asyncHandler(async(req,res)=>{
+    try {
+        console.log("object",req.body);
+        const { createrId } = req.body;
+        const creater = await Creater.findByIdAndUpdate(
+            createrId,
+            { $addToSet: { followers: req.user?._id } },
+            { new: true, runValidators: true }
+        );
+
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {$addToSet:{following:createrId}},
+            {new:true,runValidator : true}
+        ).select('-password');
+        const data={
+            creater,
+            user
+        }
+        if (!creater) {
+            return res.status(404).send(new ApiResponse(404,null,"creater not found"))
+        }
+
+        res.status(200).send(new ApiResponse(200,data,"Follower added successfully"))
+    } catch (error) {
+        res.status(500).send(new ApiResponse(500,null,"Server error"));
+        throw new ApiError(500,error);
+    }
+})
+
+const Unfollow = asyncHandler(async(req,res)=>{
+    try {
+        console.log("object",req.body);
+        const { createrId } = req.body;
+        const creater = await Creater.findByIdAndUpdate(
+            createrId,
+            { $pull: { followers: req.user?._id } },
+            { new: true, runValidators: true }
+        );
+
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {$pull:{following:createrId}},
+            {new:true,runValidator : true}
+        ).select('-password');
+        const data={
+            creater,
+            user
+        }
+        if (!creater) {
+            return res.status(404).send(new ApiResponse(404,null,"creater not found"))
+        }
+
+        res.status(200).send(new ApiResponse(200,data,"Follower removed successfully"))
+    } catch (error) {
+        res.status(500).send(new ApiResponse(500,null,"Server error"));
+        throw new ApiError(500,error);
+    }
+})
+
+const allFollowedCreater=asyncHandler(async(req,res)=>{
+    try {
+        const user = await User.findById(req.user?._id).populate('following');
+
+        if(!user){
+            throw new ApiError(404,"user not found");
+        }
+        const data ={
+            _id : user._id,
+            name :user.fullName,
+            avatar : user.avatar,
+            following : user.following
+        }
+        res.status(200).send(new ApiResponse(200,data,"All following data"));
+    } catch(error) {
+        res.status(500).send(new ApiResponse(500,null,"Server error"));
+        throw new ApiError(500,error);
+    }
+})
+
+
+
+const createrAlldata=asyncHandler(async(req,res)=>{
+    try {
+        const {id} = req.params;
+        const creater = await Creater.findById(id)            .populate({
+            path: 'followers user',
+            select: '_id fullName avatar'
+        });
+        if(!creater){
+            throw new ApiError(404,"user not found");
+        }
+        res.status(200).send(new ApiResponse(200,creater,"creater data"));
+    } catch(error) {
+        res.status(500).send(new ApiResponse(500,null,"Server error"));
+        throw new ApiError(500,error);
+    }
+})
+
+export { addCreater,follow,Unfollow,allFollowedCreater,createrAlldata};
 
 
 

@@ -45,4 +45,25 @@ const deleteFileOncloud= async(avatar)=>{
     }
 }
 
-export {uploadFileOnCloud,deleteFileOncloud};
+const uploadVideoToCloudinary = async (filePath, publicId) => {
+  try {
+    const response = await cloudinary.uploader.upload(filePath, {
+      resource_type: "video",
+      public_id: publicId, 
+      folder: "videos",
+    });
+    console.log("Video uploaded successfully:", response);
+    fs.unlinkSync(filePath);
+    return response;
+  } catch (error) {
+    fs.unlinkSync(filePath);
+    console.error("Cloudinary video upload error:", error);
+    throw error;
+  }
+};
+
+
+
+
+
+export {uploadFileOnCloud,deleteFileOncloud,uploadVideoToCloudinary};
