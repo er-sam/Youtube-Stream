@@ -7,6 +7,19 @@ const videoSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  videopath :{
+    type : String,
+    required : true,
+    unique : true
+  },
+  playbackpath:{
+    type : String,
+    required : true,
+    unique : true
+  },
+  format :{
+    type : String
+  },
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Creater",
@@ -36,4 +49,4 @@ const videoSchema = new mongoose.Schema({
   },
 });
 
-export const Video = mongoose.model("Creater", videoSchema);
+export const Video = mongoose.model("Video", videoSchema);

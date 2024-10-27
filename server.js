@@ -6,11 +6,11 @@ import helmet from "helmet";
 import cors from "cors";
 import dotenv from 'dotenv'
 import { rateLimit } from "express-rate-limit";
-// import logger from "./logs/logger.js";
 import { createClient } from "redis";
 import authRoute from './src/routes/authRoute.js'
 import createrRoute from './src/routes/createrRoute.js'
 import videoRoute from './src/routes/videoRoute.js'
+import {syncViewsToDatabase } from "./src/services/Scheduler.js";
 
 const app = express();
 
@@ -34,23 +34,7 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
-// Redis Connection
-// const redis = await createClient()
-//   .on("error", (err) => console.log("Redis Client Error", err))
-//   .connect();
 
-// redis
-//   .ping()
-//   .then((result) => {
-//     console.log("Redis ping response:", result);
-//   })
-//   .catch((error) => {
-//     // logger.error("kafka-error::::",error);
-//     console.error("Redis-error:", error);
-//   });
-
-
-// Routes setup
 app.get("/", (req, res) => {
   res.send("Server running.......");
 });
@@ -61,7 +45,8 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-
+//---task-scheduled----
+syncViewsToDatabase.start();
 
 // Api-Calls
 app.use('/api/v1/auth/',authRoute);
