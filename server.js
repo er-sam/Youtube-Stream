@@ -10,7 +10,8 @@ import { createClient } from "redis";
 import authRoute from './src/routes/authRoute.js'
 import createrRoute from './src/routes/createrRoute.js'
 import videoRoute from './src/routes/videoRoute.js'
-import {syncViewsToDatabase } from "./src/services/Scheduler.js";
+import commentsRoute from './src/routes/commentsRoute.js'
+import {syncLikesToDatabase, syncViewsToDatabase } from "./src/services/Scheduler.js";
 
 const app = express();
 
@@ -47,11 +48,13 @@ app.use((err, req, res, next) => {
 
 //---task-scheduled----
 syncViewsToDatabase.start();
+syncLikesToDatabase.start();
 
 // Api-Calls
 app.use('/api/v1/auth/',authRoute);
 app.use('/api/v1/creater/',createrRoute)
 app.use('/api/v1/video/',videoRoute)
+app.use('/api/v1/comments/',commentsRoute)
 
 // Start Server
 const PORT = process.env.PORT || 3000;

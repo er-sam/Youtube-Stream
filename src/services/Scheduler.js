@@ -19,12 +19,39 @@ export const syncViewsToDatabase = cron.schedule("*/51 * * * * *", async () => {
     }
     console.log("Views synchronized with the database");
   } catch (error) {
+    console.error("Error syncing views:", error);
+  }
+  finally{
+    isSyncing = false
+  }
+});
+
+
+
+// Schedule the cron job to run every 5 seconds
+export const syncLikesToDatabase = cron.schedule("*/51 * * * * *", async () => {
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    const keys = await redisClient.keys("video_like:*");
+    for (const key of keys) {
+      const videoId = key.split(":")[1];
+      const LikeCount = await redisClient.get(key);
+      await Video.findByIdAndUpdate(videoId, {
+        $inc: { like: parseInt(LikeCount, 10) },
+      });
+      await redisClient.del(key);
+    }
+    console.log("Like synchronized with the database");
+  } catch (error) {
     console.error("Error syncing likes:", error);
   }
   finally{
     isSyncing = false
   }
 });
+
+
 
 // module.exports = syncLikesToDatabase;
 
